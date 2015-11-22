@@ -10,7 +10,7 @@ class Main {
   public static void main(String[] args) {
         try {
 
-            String path = "smile.png";
+            String path = "subzeromask.png";
             BufferedImage image = ImageIO.read(new File(path));
             int w = image.getWidth();
             int h = image.getHeight();
@@ -20,7 +20,10 @@ class Main {
                     int red = c.getRed();
                     int green = c.getGreen();
                     int blue = c.getBlue();
-                    System.out.format("strip.setPixelColor(customMappingFunction(%d, %d), strip.Color(%d, %d, %d));\n", x, y, red, green, blue);
+                    if((((y % 2) == 0) && ((x % 2) == 0) || ((y % 2) > 0) && ((x % 2) > 0)) &&
+                        !(red == 1 && green == 1 && blue == 1)){
+                        System.out.format("strip.setPixelColor(customMappingFunction(%d, %d), strip.Color(%d, %d, %d));\n", x, y, red, green, blue);
+                    }
                 }
             }
         } catch (Exception ex) {
