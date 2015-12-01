@@ -10,7 +10,7 @@ class Main {
   public static void main(String[] args) {
         try {
 
-            String path = "subzeromask.png";
+            String path = "patternImages/subzeromask.png";
             BufferedImage image = ImageIO.read(new File(path));
             int w = image.getWidth();
             int h = image.getHeight();
