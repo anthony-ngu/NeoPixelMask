@@ -6,16 +6,16 @@
 #include "neopixel/neopixel.h"
 
 // SYSTEM_MODE(AUTOMATIC);
-SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_MODE(SEMI_AUTOMATIC); // This stops the board from automatically searching for WiFi connectivity
 
-#define PATTERN_INDEX_MAX 9
-#define DEBOUNCE_DELAY 300
+#define PATTERN_INDEX_MAX 9 // The maximum index allowed for the patterns
+#define DEBOUNCE_DELAY 300 // The delay for the debouncing of the button to stop false positives
 
 #define LED_PIN D3
 #define TOGGLE_PIN D2
 #define WIFI_PIN D1
 
-// IMPORTANT: Set pixel COUNT, PIN and TYPE
+// IMPORTANT: Set Pixel PIN, COUNT, and TYPE
 #define PIXEL_PIN A5
 #define PIXEL_COUNT 120
 #define PIXEL_TYPE WS2812B
@@ -37,67 +37,67 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 ------------------------------115---116---117---118---119------------------------------ // 5
 */
 
-int patternIndex = 0; // This is the index to which pattern to play
+int patternIndex = 0; // This is the index to select which pattern to play
 bool patternToggled = true; // Every function must check this between frames in order to allow for a quick response to the button
-unsigned long lastDebounceTime;
+unsigned long lastDebounceTime; // The last time when the button was triggered
 
-void setup() 
+void setup()
 {
     attachInterrupt(TOGGLE_PIN, togglePattern, FALLING); // This will allow you to create a button that triggers the patternChange
     attachInterrupt(WIFI_PIN, connect, CHANGE); // This will allow you to create switch that triggers the WiFi connection call
-  
-    strip.begin();
+
+    strip.begin(); // Sends the start protocol for the LEDs.
     strip.show(); // Initialize all pixels to 'off'
-    strip.setBrightness(10);
+    strip.setBrightness(10); // Stops the LEDs from being blinding
 }
 
-void loop() 
+void loop()
 {
     // Unfortunately, particle's build doesn't currently allow for function pointers,
     // so we'll have to do a simple switch case
     switch(patternIndex)
     {
         case 0:
-            rainbow(20);
+            rainbow(20); // generic rainbow pattern
             break;
         case 1:
-            bucktoothJack();
+            bucktoothJack(); // an orange jack-o-lantern pattern
             break;
         case 2:
-            subzero();
+            subzero(); // a blue subzero pattern
             break;
         case 3:
-            winter(200);
+            winter(200); // random white pixels around a christmas tree
             break;
         case 4:
-            rainyWeather(200);
+            rainyWeather(200); // random blue pixels
             break;
         case 5:
-            heartAnimation(200);
+            heartAnimation(200); // an animating red heart
             break;
         case 6:
-            smile();
+            smile(); // a mask in white with a smile
             break;
         case 7:
-            hi();
+            hi(); // shows 'hi'
             break;
         case 8:
-            bye();
+            bye(); // shows 'bye'
             break;
         case 9:
-            rainbowMask();
+            rainbowMask(); // a rainbow mask similar to subzeros
             break;
         default:
             rainbow(20);
             break;
     }
-    
+
     if(patternToggled){
         patternToggled = false;
     }
 }
 
-// Pretends that it is a 30 by 15 Matrix
+// Pretends that it is a 30 by 15 Matrix and maps to the correct pixels
 uint16_t customMappingFunction (uint16_t x, uint16_t y){
     if(x > 28 || y > 10)
     {
@@ -117,7 +117,7 @@ uint16_t customMappingFunction (uint16_t x, uint16_t y){
     countInRow[8] = 9;
     countInRow[9] = 6;
     countInRow[10] = 5;
-    
+
     int numSpacersPerSide = maxCountInRow - countInRow[y];
     if(((y % 2) == 0) && ((x % 2) == 0)) // this means that it's an even row, so all odd pixels are dropped in the row.
     {
@@ -133,13 +133,13 @@ uint16_t customMappingFunction (uint16_t x, uint16_t y){
         {
             return 11*15-1;
         }
-        
+
         leftover = leftover / 2; // divides by two due to the dropping
 
         if(leftover >= countInRow[y]){ // Also, drop the spacers on the right side
              return 11*15-1;
         }
-        
+
         return leftover + pixelCount;
     }else if(((y % 2) > 0) && ((x % 2) > 0)){  // this means that it's an odd row, so all even pixels are dropped in the row
         // count up the number of pixels in the rows prior
@@ -154,19 +154,20 @@ uint16_t customMappingFunction (uint16_t x, uint16_t y){
         {
             return 11*15-1;
         }
-        
+
         leftover = leftover / 2; // divides by two due to the dropping
-        
+
         if(leftover >= countInRow[y]){ // Also, drop the spacers on the right side
              return 11*15-1;
         }
-        
+
         return countInRow[y] - leftover + pixelCount-1;
     }else{ // it's a dropped pixel so forget it
         return 11*15-1;
     }
 }
 
+// Signals the stop of the pattern and increments the pattern index
 void togglePattern(){
     if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) //if current time minus the last trigger time is greater than
     {                                                  //the delay (debounce) time, button is completley closed.
@@ -182,6 +183,7 @@ void togglePattern(){
     }
 }
 
+// Attempts to connect using the normal WiFi connectivity capabilities
 void connect() {
     strip.setBrightness(30);
     if (Spark.connected() == false) {
@@ -189,6 +191,7 @@ void connect() {
     }
 }
 
+// Fills from the start pixel, to the finish pixel with the color
 void fillFrom(uint16_t start, uint16_t finish, uint32_t color)
 {
     uint16_t i;
@@ -200,7 +203,7 @@ void fillFrom(uint16_t start, uint16_t finish, uint32_t color)
 
 void rainbow(uint8_t wait) {
     uint16_t i, j;
-    
+
     for(j=0; j<256 && !patternToggled; j++) {
         for(i=0; i<strip.numPixels(); i++) {
             strip.setPixelColor(i, Wheel((i+j) & 255));
@@ -230,11 +233,11 @@ void heartAnimation(uint8_t wait){
         xsmallHeart();
         strip.show();
         delay(wait*2);
-        
+
         smallHeart();
         strip.show();
-        delay(wait); 
-        
+        delay(wait);
+
         bigHeart();
         strip.show();
         delay(wait*2);
@@ -244,57 +247,57 @@ void heartAnimation(uint8_t wait){
 void xsmallHeart()
 {
     strip.clear();
-    
+
     fillFrom(48, 49, strip.Color(255, 0, 0));
     fillFrom(46, 47, strip.Color(255, 0, 0));
-    
+
     strip.setPixelColor(104, strip.Color(255, 0, 0));
-    
+
     fillFrom(94, 95, strip.Color(255, 0, 0));
-    
+
     fillFrom(83, 85, strip.Color(255, 0, 0));
-    
+
     fillFrom(71, 74, strip.Color(255, 0, 0));
-    
+
     fillFrom(58, 62, strip.Color(255, 0, 0));
 }
 
 void smallHeart()
 {
     strip.clear();
-    
+
     strip.setPixelColor(117, strip.Color(255, 0, 0));
-    
+
     strip.setPixelColor(33, strip.Color(255, 0, 0));
     strip.setPixelColor(34, strip.Color(255, 0, 0));
-    
+
     fillFrom(48, 50, strip.Color(255, 0, 0));
-    
+
     strip.setPixelColor(60, strip.Color(255, 0, 0));
-    
+
     strip.setPixelColor(111, strip.Color(255, 0, 0));
     strip.setPixelColor(112, strip.Color(255, 0, 0));
-    
+
     fillFrom(103, 105, strip.Color(255, 0, 0));
-    
+
     fillFrom(93, 96, strip.Color(255, 0, 0));
-    
+
     fillFrom(82, 86, strip.Color(255, 0, 0));
-    
+
     fillFrom(70, 75, strip.Color(255, 0, 0));
-    
+
     strip.setPixelColor(37, strip.Color(255, 0, 0));
     strip.setPixelColor(36, strip.Color(255, 0, 0));
-    
+
     fillFrom(45, 47, strip.Color(255, 0, 0));
-    
+
     fillFrom(58, 62, strip.Color(255, 0, 0));
 }
 
 void bigHeart()
 {
     strip.clear();
-    
+
     fillFrom(4, 5, strip.Color(255, 0, 0));
     fillFrom(9, 10, strip.Color(255, 0, 0));
     fillFrom(18, 20, strip.Color(255, 0, 0));
@@ -533,7 +536,7 @@ void bye(){
 
 void winter(int delayAmount){
     strip.clear();
-    
+
     for(int i = 0; i<40; i++)
     {
         strip.setPixelColor(random(120), strip.Color(255, 255, 255));
@@ -570,7 +573,7 @@ void winter(int delayAmount){
 
 void rainyWeather(int delayAmount){
     strip.clear();
-    
+
     for(int i = 0; i<40; i++)
     {
         strip.setPixelColor(random(120), strip.Color(57, 78, 215));
